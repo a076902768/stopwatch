@@ -25,19 +25,27 @@ console.log(`Nuxt working on ${_NUXT_URL_}`);
  ** Electron
  */
 let win = null; // Current window
-const electron = require("electron");
+/*
+ *  用一个 Tray 来表示一个图标,这个图标处于正在运行的系统的通知区 ，通常被添加到一个 context menu 上.
+ */
+const { app, BrowserWindow, Tray, Menu } = require("electron");
 const path = require("path");
-const app = electron.app;
-const newWin = () => {
-  win = new electron.BrowserWindow({
-    icon: path.join(__dirname, "static/icon.png"),
-    webPreferences: {
-      nodeIntegration: true,
-      contextIsolation: false
-    }
-  });
-  win.maximize();
+const init = () => {
+  // // 應用程式視窗設定
+  const createWindow = () => {
+    return new BrowserWindow({
+      icon: path.join(__dirname, "static/icon.png"),
+      webPreferences: {
+        nodeIntegration: true, //Boolean - 是否完整支持node. 默认为 true
+        contextIsolation: false
+      }
+    });
+  };
+  let win = createWindow();
+
+  win.maximize(); // 窗口最大化
   win.on("closed", () => (win = null));
+
   if (config.dev) {
     // Install vue dev tool and open chrome dev tools
     const {
@@ -47,7 +55,7 @@ const newWin = () => {
     installExtension(VUEJS_DEVTOOLS.id)
       .then(name => {
         console.log(`Added Extension:  ${name}`);
-        win.webContents.openDevTools();
+        win.webContents.openDevTools(); // 打開開發者模式
       })
       .catch(err => console.log("An error occurred: ", err));
     // Wait for nuxt to build
@@ -66,7 +74,37 @@ const newWin = () => {
   } else {
     return win.loadURL(_NUXT_URL_);
   }
+
+  const createTray = () => {
+    let appIcon = null;
+    const iconPath = path.join(__dirname, "static/icon.png");
+
+    const contextMenu = Menu.buildFromTemplate([
+      {
+        label: "AlarmClock",
+        click() {
+          win.show(); // 展示并且使窗口获得焦点.
+        }
+      },
+      {
+        label: "Quit",
+        click() {
+          win.removeAllListeners("close");
+          win.close(); // 尝试关闭窗口，这与用户点击关闭按钮的效果一样. 虽然网页可能会取消关闭
+        }
+      }
+    ]);
+
+    appIcon = new Tray(iconPath);
+    appIcon.setToolTip("Alarm Clock");
+    appIcon.setContextMenu(contextMenu);
+  };
+
+  createTray();
 };
-app.on("ready", newWin);
+// 当 Electron 完成初始化时被触发。
+app.on("ready", init);
+// 当所有的窗口都被关闭时触发。
 app.on("window-all-closed", () => app.quit());
-app.on("activate", () => win === null && newWin());
+// 当应用被激活时触发，常用于点击应用的 dock 图标的时候。
+app.on("activate", () => win === null && init());
