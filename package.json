@@ -1,0 +1,40 @@
+{
+  "name": "electron-nuxt",
+  "version": "1.0.0",
+  "description": "Nuxt + Electron",
+  "author": "kacueto <kacueto.halcyondigital@gmail.com>",
+  "private": true,
+  "main": "main.js",
+  "build": {
+    "appId": "",
+    "directories": {
+      "buildResources": "static"
+    }
+  },
+  "scripts": {
+    "dev": "cross-env NODE_ENV=DEV electron .",
+    "build": "nuxt build && electron-builder",
+    "lint": "eslint --ext .js,.vue --ignore-path .gitignore .",
+    "lintfix": "eslint --fix --ext .js,.vue --ignore-path .gitignore ."
+  },
+  "dependencies": {
+    "ant-design-vue": "^1.7.8",
+    "electron": "^14.0.0",
+    "electron-devtools-installer": "^3.2.0",
+    "indexof": "0.0.1",
+    "nuxt": "^2.15.8",
+    "nuxt-purgecss": "^0.2.1"
+  },
+  "devDependencies": {
+    "babel-eslint": "^8.2.6",
+    "cross-env": "^5.1.4",
+    "eslint": "^4.19.1",
+    "eslint-config-prettier": "^6.15.0",
+    "eslint-friendly-formatter": "^3.0.0",
+    "eslint-loader": "^3.0.4",
+    "eslint-plugin-prettier": "^3.4.1",
+    "eslint-plugin-vue": "^4.7.1",
+    "prettier": "^1.19.1",
+    "tailwindcss": "^1.9.6"
+  }
+}
