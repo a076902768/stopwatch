@@ -37,7 +37,6 @@ const init = () => {
   const createWindow = () => {
     let win = new BrowserWindow({
       icon: path.join(__dirname, "static/icon.png"),
-      skipTaskbar: false,
       webPreferences: {
         nodeIntegration: true, //Boolean - 是否完整支持node. 默认为 true
         contextIsolation: false
@@ -54,32 +53,27 @@ const init = () => {
       {
         label: "exit",
         click: () => {
-          //ipc.send('close-main-window');
           app.quit();
         }
       }
     ];
 
-    // //系统托盘图标目录
-    // const trayIcon = path.join(__dirname, "tray");
-
-    // const appTray = new Tray("favicon.ico");
-
     //图标的上下文菜单
     const contextMenu = Menu.buildFromTemplate(trayMenuTemplate);
 
-    // //设置此托盘图标的悬停提示内容
-    // appTray.setToolTip("This is my application.");
-
-    // //设置此图标的上下文菜单
-    // appTray.setContextMenu(contextMenu);
-
-    win.maximize(); // 窗口最大化
-    win.on("closed", e => {
+    win.on("close", e => {
       e.preventDefault(); // 阻止退出程序
-      // win.setSkipTaskbar(true); // 取消任务栏显示
       win.hide(); // 隐藏主程序窗口
     }); // 当点击关闭按钮
+
+    const setTray = () => {
+      tray = new Tray(iconPath);
+      tray.setContextMenu(contextMenu);
+      tray.setToolTip("碼表視窗小程式");
+      tray.on("click", () => {
+        win.show();
+      });
+    };
 
     if (config.dev) {
       // Install vue dev tool and open chrome dev tools
@@ -98,9 +92,7 @@ const init = () => {
         http
           .get(_NUXT_URL_, res => {
             if (res.statusCode === 200) {
-              tray = new Tray(iconPath);
-              tray.setContextMenu(contextMenu);
-              tray.setToolTip("碼表視窗小程式");
+              setTray();
               win.loadURL(_NUXT_URL_);
             } else {
               setTimeout(pollServer, 300);
