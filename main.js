@@ -30,77 +30,91 @@ let win = null; // Current window
  */
 const { app, BrowserWindow, Tray, Menu } = require("electron");
 const path = require("path");
+const iconPath = path.join(__dirname, "static/icon.png");
+let tray = null;
 const init = () => {
   // // 應用程式視窗設定
   const createWindow = () => {
-    return new BrowserWindow({
+    let win = new BrowserWindow({
       icon: path.join(__dirname, "static/icon.png"),
+      skipTaskbar: false,
       webPreferences: {
         nodeIntegration: true, //Boolean - 是否完整支持node. 默认为 true
         contextIsolation: false
       }
     });
-  };
-  let win = createWindow();
 
-  win.maximize(); // 窗口最大化
-  win.on("closed", () => (win = null));
-
-  if (config.dev) {
-    // Install vue dev tool and open chrome dev tools
-    const {
-      default: installExtension,
-      VUEJS_DEVTOOLS
-    } = require("electron-devtools-installer");
-    installExtension(VUEJS_DEVTOOLS.id)
-      .then(name => {
-        console.log(`Added Extension:  ${name}`);
-        win.webContents.openDevTools(); // 打開開發者模式
-      })
-      .catch(err => console.log("An error occurred: ", err));
-    // Wait for nuxt to build
-    const pollServer = () => {
-      http
-        .get(_NUXT_URL_, res => {
-          if (res.statusCode === 200) {
-            win.loadURL(_NUXT_URL_);
-          } else {
-            setTimeout(pollServer, 300);
-          }
-        })
-        .on("error", pollServer);
-    };
-    pollServer();
-  } else {
-    return win.loadURL(_NUXT_URL_);
-  }
-
-  const createTray = () => {
-    let appIcon = null;
-    const iconPath = path.join(__dirname, "static/icon.png");
-
-    const contextMenu = Menu.buildFromTemplate([
+    //系统托盘右键菜单
+    const trayMenuTemplate = [
       {
-        label: "AlarmClock",
-        click() {
-          win.show(); // 展示并且使窗口获得焦点.
-        }
+        label: "设置",
+        // eslint-disable-next-line prettier/prettier
+        click: () => { } //打开相应页面
       },
       {
-        label: "Quit",
-        click() {
-          win.removeAllListeners("close");
-          win.close(); // 尝试关闭窗口，这与用户点击关闭按钮的效果一样. 虽然网页可能会取消关闭
+        label: "exit",
+        click: () => {
+          //ipc.send('close-main-window');
+          app.quit();
         }
       }
-    ]);
+    ];
 
-    appIcon = new Tray(iconPath);
-    appIcon.setToolTip("Alarm Clock");
-    appIcon.setContextMenu(contextMenu);
+    // //系统托盘图标目录
+    // const trayIcon = path.join(__dirname, "tray");
+
+    // const appTray = new Tray("favicon.ico");
+
+    //图标的上下文菜单
+    const contextMenu = Menu.buildFromTemplate(trayMenuTemplate);
+
+    // //设置此托盘图标的悬停提示内容
+    // appTray.setToolTip("This is my application.");
+
+    // //设置此图标的上下文菜单
+    // appTray.setContextMenu(contextMenu);
+
+    win.maximize(); // 窗口最大化
+    win.on("closed", e => {
+      e.preventDefault(); // 阻止退出程序
+      // win.setSkipTaskbar(true); // 取消任务栏显示
+      win.hide(); // 隐藏主程序窗口
+    }); // 当点击关闭按钮
+
+    if (config.dev) {
+      // Install vue dev tool and open chrome dev tools
+      const {
+        default: installExtension,
+        VUEJS_DEVTOOLS
+      } = require("electron-devtools-installer");
+      installExtension(VUEJS_DEVTOOLS.id)
+        .then(name => {
+          console.log(`Added Extension:  ${name}`);
+          win.webContents.openDevTools(); // 打開開發者模式
+        })
+        .catch(err => console.log("An error occurred: ", err));
+      // Wait for nuxt to build
+      const pollServer = () => {
+        http
+          .get(_NUXT_URL_, res => {
+            if (res.statusCode === 200) {
+              tray = new Tray(iconPath);
+              tray.setContextMenu(contextMenu);
+              tray.setToolTip("碼表視窗小程式");
+              win.loadURL(_NUXT_URL_);
+            } else {
+              setTimeout(pollServer, 300);
+            }
+          })
+          .on("error", pollServer);
+      };
+      pollServer();
+    } else {
+      return win.loadURL(_NUXT_URL_);
+    }
   };
 
-  createTray();
+  createWindow();
 };
 // 当 Electron 完成初始化时被触发。
 app.on("ready", init);
