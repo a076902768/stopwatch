@@ -1,15 +1,31 @@
 <template>
   <div class="timer-container">
+    <p
+      v-text="
+        timer.hours + '小時' + timer.minutes + '分' + timer.seconds + '秒'
+      "
+    />
     <div class="prograss-container">
       <a-progress
         :percent="prograssPercent"
         :format="() => prograssFormat"
         type="circle"
       />
+    </div>
+    <div class="button-container">
       <a-button-group>
-        <a-button :size="'small'" @click="startCount">start</a-button>
-        <a-button :size="'small'" @click="clearCount">stop</a-button>
-        <a-button :size="'small'" @click="reloadCount">reload</a-button>
+        <a-button :size="'small'" @click="startCount">
+          <a-icon type="caret-right" />
+        </a-button>
+        <a-button :size="'small'" @click="clearCount">
+          <a-icon type="stop" />
+        </a-button>
+        <a-button :size="'small'" @click="reloadCount">
+          <a-icon type="reload" />
+        </a-button>
+        <a-button :size="'small'" @click="deleteTimer">
+          <a-icon type="delete" />
+        </a-button>
       </a-button-group>
     </div>
   </div>
@@ -19,13 +35,13 @@ export default {
   props: {
     timer: {
       type: Object,
-      default: () => {}
-    }
+      default: () => {},
+    },
   },
   data() {
     return {
       time: {},
-      countTimer: null
+      countTimer: null,
     };
   },
   computed: {
@@ -48,13 +64,18 @@ export default {
             this.timer.seconds)) *
         100
       );
-    }
+    },
   },
-  mounted() {
-    const vm = this;
-    vm.time = { ...vm.timer };
-    console.log(vm.time);
-    console.log(vm.prograssPercent);
+  watch: {
+    timer: {
+      handler() {
+        const vm = this;
+        clearInterval(vm.countTimer);
+        vm.time = { ...vm.timer };
+        console.log(vm.timer);
+      },
+      immediate: true,
+    },
   },
   methods: {
     startCount() {
@@ -87,6 +108,10 @@ export default {
           vm.time.minutes === 0 &&
           vm.time.hours === 0
         ) {
+          new Notification("時間到!", {
+            body: `共${vm.timer.hours}小時${vm.timer.minutes}分鐘${vm.timer.seconds}秒`,
+            icon: "/static/icon.png",
+          });
           clearInterval(vm.countTimer);
         }
       }, 100);
@@ -99,8 +124,13 @@ export default {
       const vm = this;
       clearInterval(vm.countTimer);
       vm.time = { ...vm.timer };
-    }
-  }
+    },
+    deleteTimer() {
+      const vm = this;
+      clearInterval(vm.countTimer);
+      vm.$emit("deleteTimer", vm.timer.id);
+    },
+  },
 };
 </script>
 <style lang="css" scoped>
@@ -116,5 +146,12 @@ export default {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
+}
+
+.button-container {
+  position: absolute;
+  bottom: 5%;
+  left: 50%;
+  transform: translateX(-50%);
 }
 </style>

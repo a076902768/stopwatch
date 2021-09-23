@@ -46,11 +46,6 @@ const init = () => {
     //系统托盘右键菜单
     const trayMenuTemplate = [
       {
-        label: "设置",
-        // eslint-disable-next-line prettier/prettier
-        click: () => { } //打开相应页面
-      },
-      {
         label: "exit",
         click: () => {
           app.quit();
