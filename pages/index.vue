@@ -1,48 +1,87 @@
 <template>
-  <section class="container">
-    <div>
-      <img width="256" src="~/assets/img/logo.png" />
-      <h1>electron-nuxt</h1>
-      <h2>Nuxt + Electron</h2>
-      <a href="https://nuxtjs.org/" target="_blank" class="btn btn-primary"
-        >Documentation</a
-      >
-      <a-button type="danger"> Danger </a-button>
-      <a
-        href="https://github.com/nuxt/nuxt.js"
-        target="_blank"
-        class="btn btn-primary"
-        >GitHub</a
-      >
-      <a
-        href="https://electronjs.org/"
-        target="_blank"
-        class="btn btn-secondary"
-        >Electron</a
-      >
-      <a
-        href="https://github.com/electron-userland/electron-builder"
-        target="_blank"
-        class="btn btn-secondary"
-        >Electron Builder</a
-      >
+  <div class="">
+    <a-button @click="showAddModal = true">新增計時器</a-button>
+
+    <div v-if="timerList.length">
+      <div v-for="(timer, key) in timerList" :key="key" class="timer-list">
+        <timer :timer="timer" />
+      </div>
     </div>
-  </section>
+
+    <a-modal
+      v-model="showAddModal"
+      title="新增計時器"
+      @cancel="showAddModal = false"
+      @ok="handleOk"
+    >
+      <a-input-number
+        id="inputNumber"
+        v-model="addForm.hours"
+        :min="0"
+        placeholder="時"
+        @change="onChange"
+      />
+      <span>：</span>
+      <a-input-number
+        id="inputNumber"
+        v-model="addForm.minutes"
+        :min="0"
+        :max="60"
+        placeholder="分"
+        @change="onChange"
+      />
+      <span>：</span>
+      <a-input-number
+        id="inputNumber"
+        v-model="addForm.seconds"
+        :min="0"
+        :max="60"
+        placeholder="秒"
+        @change="onChange"
+      />
+    </a-modal>
+  </div>
 </template>
 
 <script>
-export default {};
+import Timer from "@/components/Timer";
+export default {
+  components: {
+    Timer
+  },
+  data() {
+    return {
+      timerList: [],
+      addForm: {
+        hours: null,
+        minutes: null,
+        seconds: null
+      },
+      showAddModal: false
+    };
+  },
+  methods: {
+    onChange(value) {
+      console.log("changed", value);
+    },
+    handleOk() {
+      const vm = this;
+      vm.timerList.push({
+        ...vm.addForm
+      });
+      vm.clearAddModal();
+      vm.showAddModal = false;
+    },
+    clearAddModal() {
+      const vm = this;
+      vm.addForm = {
+        hours: null,
+        minutes: null,
+        seconds: null
+      };
+    }
+  }
+};
 </script>
 
-<style scoped>
-.container {
-  min-height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-}
-.btn {
-  margin: 0 8px;
-}
-</style>
+<style lang="scss" scoped></style>
