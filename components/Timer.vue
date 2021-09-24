@@ -14,10 +14,10 @@
     </div>
     <div class="button-container">
       <a-button-group>
-        <a-button :size="'small'" @click="startCount">
+        <a-button v-if="!countTimer" :size="'small'" @click="startCount">
           <a-icon type="caret-right" />
         </a-button>
-        <a-button :size="'small'" @click="clearCount">
+        <a-button v-else :size="'small'" @click="clearInterval">
           <a-icon type="stop" />
         </a-button>
         <a-button :size="'small'" @click="reloadCount">
@@ -70,9 +70,7 @@ export default {
     timer: {
       handler() {
         const vm = this;
-        clearInterval(vm.countTimer);
-        vm.time = { ...vm.timer };
-        console.log(vm.timer);
+        vm.reloadCount();
       },
       immediate: true,
     },
@@ -112,22 +110,23 @@ export default {
             body: `共${vm.timer.hours}小時${vm.timer.minutes}分鐘${vm.timer.seconds}秒`,
             icon: "/static/icon.png",
           });
-          clearInterval(vm.countTimer);
+          vm.clearInterval();
         }
-      }, 100);
+      }, 1000);
     },
-    clearCount() {
+    clearInterval() {
       const vm = this;
       clearInterval(vm.countTimer);
+      vm.countTimer = null;
     },
     reloadCount() {
       const vm = this;
-      clearInterval(vm.countTimer);
+      vm.clearInterval();
       vm.time = { ...vm.timer };
     },
     deleteTimer() {
       const vm = this;
-      clearInterval(vm.countTimer);
+      vm.clearInterval();
       vm.$emit("deleteTimer", vm.timer.id);
     },
   },
